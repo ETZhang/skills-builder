@@ -2,6 +2,8 @@
 
 A comprehensive CLI tool for checking, creating, and managing Claude Code skills according to best practices.
 
+English | [简体中文](README.zh-CN.md)
+
 ## Features
 
 - **Check**: Validate skill structure and best practices compliance
