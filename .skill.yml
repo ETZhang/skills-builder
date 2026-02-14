@@ -1,4 +1,4 @@
-name: skill-builder
+name: skills-builder
 description: A Claude skill for checking, creating, and modifying other skills
 version: 1.0.0
 author: Claude Code

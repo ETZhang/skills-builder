@@ -1,6 +1,6 @@
-# Skill Builder
+# Skills Builder
 
-A comprehensive Claude skill for checking, creating, and modifying other skills according to best practices documented in "The Complete Guide to Building Skills for Claude".
+A comprehensive CLI tool for checking, creating, and managing Claude Code skills according to best practices.
 
 ## Features
 
@@ -11,7 +11,7 @@ A comprehensive Claude skill for checking, creating, and modifying other skills 
 
 ## Installation
 
-This skill is automatically available in Claude Code when installed in `~/.claude/skills/skill-builder/`.
+This skill is automatically available in Claude Code when installed in `~/.claude/skills/skills-builder/`.
 
 ## Usage
 
@@ -20,9 +20,9 @@ This skill is automatically available in Claude Code when installed in `~/.claud
 Validate any skill directory:
 
 ```bash
-skill-builder check [path]
-skill-builder check ~/.claude/skills/code-actor
-skill-builder check .  # Check current directory
+skills-builder check [path]
+skills-builder check ~/.claude/skills/code-actor
+skills-builder check .  # Check current directory
 ```
 
 Options:
@@ -34,8 +34,8 @@ Options:
 Generate a new skill with standard structure:
 
 ```bash
-skill-builder create [name]
-skill-builder create my-awesome-skill
+skills-builder create [name]
+skills-builder create my-awesome-skill
 ```
 
 Options:
@@ -49,7 +49,7 @@ Turn current directory into a skill:
 
 ```bash
 cd my-project
-skill-builder init
+skills-builder init
 ```
 
 ### Update a Skill
@@ -57,13 +57,13 @@ skill-builder init
 Add languages or dependencies:
 
 ```bash
-skill-builder update --add-language zh
-skill-builder update --add_dependency lodash@4.17.21
+skills-builder update --add-language zh
+skills-builder update --add_dependency lodash@4.17.21
 ```
 
 ## Best Practices Checked
 
-When running `skill-builder check`, following are validated:
+When running `skills-builder check`, following are validated:
 
 ### Structure
 

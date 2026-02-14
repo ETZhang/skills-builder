@@ -42,7 +42,7 @@ function t(key, translations = {}) {
 
 // CLI Configuration
 const argv = yargs(hideBin(process.argv))
-  .scriptName('skill-builder')
+  .scriptName('skills-builder')
   .usage('Usage: $0 <command> [options]')
   .command('check [path]', 'Validate a skill', (yargs) => {
     return yargs

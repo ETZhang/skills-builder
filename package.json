@@ -1,11 +1,11 @@
 {
-  "name": "skill-builder",
+  "name": "skills-builder",
   "version": "1.0.0",
-  "description": "A Claude skill for checking, creating, and modifying other skills according to best practices",
+  "description": "A CLI tool for checking, creating, and managing Claude Code skills according to best practices",
   "type": "module",
   "main": "dist/cli/index.js",
   "bin": {
-    "skill-builder": "dist/cli/index.js"
+    "skills-builder": "dist/cli/index.js"
   },
   "scripts": {
     "build": "bun build src/cli/index.js --outdir dist/cli --target node --platform neutral",
@@ -17,7 +17,7 @@
   },
   "keywords": [
     "claude",
-    "skill",
+    "skills",
     "builder",
     "validator",
     "generator"
