@@ -185,5 +185,3 @@ export async function bumpVersion(skillPath, versionType = 'patch') {
     return { success: false, error: e.message };
   }
 }
-
-export { addLanguages, bumpVersion };
