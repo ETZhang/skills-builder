@@ -13,7 +13,8 @@
     "build:validator": "bun build src/validator/index.js --outdir dist/validator --target node --platform neutral",
     "build:generator": "bun build src/generator/index.js --outdir dist/generator --target node --platform neutral",
     "build:all": "bun run build && bun run build:analyzer && bun run build:validator && bun run build:generator",
-    "dev": "bun run src/cli/index.js"
+    "dev": "bun run src/cli/index.js",
+    "test": "node src/cli/index.js --help"
   },
   "keywords": [
     "claude",
