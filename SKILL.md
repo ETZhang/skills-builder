@@ -109,11 +109,16 @@ When running `skills-builder check`, following aspects are validated:
 
 ### Required Structure
 
-- `package.json` - Must exist and be valid JSON
-- `polyglot.json` - For internationalization support
-- `dist/cli/index.js` - CLI entry point with shebang
+- `SKILL.md` - **Must exist!** This is THE required file for Claude Code skills
+  - Must have YAML frontmatter (`---`)
+  - Frontmatter must include `name:` field
+  - Frontmatter must include `description:` field explaining when to use the skill
+  - Frontmatter should include `license:` field
+  - Should have markdown body content after frontmatter
+- `package.json` - Package configuration
 - `README.md` - Project documentation
-- `SKILL.md` - Skill definition file (required for Claude Code recognition)
+- `polyglot.json` - For internationalization support
+- `dist/cli/index.js` - CLI entry point with shebang (for CLI skills)
 - `.skill.yml` - Skill configuration metadata
 
 ### package.json Requirements
@@ -146,6 +151,21 @@ When running `skills-builder check`, following aspects are validated:
 - `src/` - Source code directory
 - `dist/` - Build output (should be gitignored)
 
+### Bundled Resources (Optional)
+
+Per "The Complete Guide to Building Skills for Claude" PDF:
+
+- `scripts/` - Executable code for tasks requiring deterministic reliability
+  - Use when same code is repeatedly rewritten
+  - Example: `scripts/rotate_pdf.py` for PDF rotation tasks
+- `references/` - Documentation to be loaded into context as needed
+  - Use for documentation Claude should reference while working
+  - Example: `references/finance.md` for financial schemas
+  - Keep SKILL.md lean; move detailed reference material here
+- `assets/` - Files used in output Claude produces (not loaded into context)
+  - Use for templates, images, fonts, boilerplate, sample documents
+  - Example: `assets/logo.png`, `assets/template.html`
+
 ## Output Formats
 
 ### Text (Default)
@@ -159,9 +179,14 @@ When running `skills-builder check`, following aspects are validated:
 
 📊 Checks Summary:
 ──────────────────────────────────────────────────
+✅ [structure] file_skill_md
+✅ [SKILL.md] has_frontmatter
+✅ [SKILL.md] frontmatter_has_name
+✅ [SKILL.md] frontmatter_has_description
+✅ [SKILL.md] frontmatter_has_license
+✅ [SKILL.md] has_markdown_body
 ✅ [structure] file_package_json
 ✅ [structure] file_polyglot_json
-✅ [structure] file_skill_md
 ✅ [package.json] field_name
 ✅ [package.json] field_version
 ✅ [package.json] field_type
@@ -175,6 +200,10 @@ When running `skills-builder check`, following aspects are validated:
 ✅ [best-practices] file_contributing_md
 ✅ [best-practices] file_changelog_md
 ✅ [best-practices] gitignore_dist
+✅ [bundled_resources] has_scripts
+✅ [bundled_resources] has_references
+✅ [bundled_resources] has_assets
+✅ [SKILL.md] concise_content
 ```
 
 ### JSON
@@ -217,24 +246,27 @@ When creating a new skill, the following structure is generated:
 
 ```
 my-skill/
-├── src/
+├── SKILL.md              # Skill definition (REQUIRED!)
+├── package.json
+├── .skill.yml           # Configuration metadata
+├── README.md             # Documentation
+├── LICENSE               # License text (open source best practice)
+├── CONTRIBUTING.md       # Contribution guide (open source best practice)
+├── CHANGELOG.md          # Version history (open source best practice)
+├── .gitignore
+├── src/                  # Source code
 │   ├── cli/
-│   │   └── index.js      # CLI entry point
+│   │   └── index.js      # CLI entry point (if CLI skill)
 │   └── analyzer/
 │       └── index.js      # Analyzer (if template=analyzer)
-├── dist/
+├── dist/                 # Build output (gitignored)
 │   ├── cli/
 │   └── analyzer/
-├── locales/              # Additional translations
+├── locales/              # Additional translations (optional)
 ├── polyglot.json         # Internationalization
-├── package.json
-├── SKILL.md              # Skill definition (required!)
-├── .skill.yml           # Configuration
-├── LICENSE               # License text
-├── CONTRIBUTING.md       # Contribution guide
-├── CHANGELOG.md          # Version history
-├── .gitignore
-└── README.md
+├── scripts/              # Executable code (optional, per PDF)
+├── references/           # Documentation for context (optional, per PDF)
+└── assets/               # Output files (optional, per PDF)
 ```
 
 ## Development
@@ -255,13 +287,40 @@ bun run test
 
 ## Important Notes
 
-1. **SKILL.md vs README.md**: `SKILL.md` is the skill definition loaded by Claude Code. `README.md` is for human users on GitHub.
+### Per "The Complete Guide to Building Skills for Claude" PDF
+
+1. **SKILL.md vs README.md**:
+   - `SKILL.md` is the skill definition loaded by Claude Code
+   - `README.md` is for human users on GitHub
+   - Keep SKILL.md concise; move detailed material to references/
 
 2. **File name case**: `SKILL.md` must be uppercase. Claude Code won't recognize `skill.md` or `Skill.md`.
 
-3. **LICENSE is critical**: Even if `package.json` has `"license": "MIT"`, you must have an actual `LICENSE` file for proper open source distribution.
+3. **Concise is Key** (Core Principle):
+   - The context window is a public good
+   - Default assumption: Claude is already very smart
+   - Only add context Claude doesn't already have
+   - Prefer concise examples over verbose explanations
 
-4. **dist in .gitignore**: Always ignore build outputs. Only commit source code.
+4. **Appropriate Degrees of Freedom** (Core Principle):
+   - **High freedom** (text-based): Multiple valid approaches, decisions depend on context
+   - **Medium freedom** (pseudocode/scripts): Preferred pattern exists, some variation OK
+   - **Low freedom** (specific scripts): Fragile/error-prone operations, consistency critical
+
+5. **SKILL.md Frontmatter Requirements**:
+   - Must start with `---` (YAML frontmatter)
+   - Required field: `name:` - skill identifier
+   - Required field: `description:` - **when to use** this skill
+   - Optional field: `license:`
+
+6. **Bundled Resources** (Optional):
+   - `scripts/` - Executable code for deterministic reliability
+   - `references/` - Documentation loaded into context as needed
+   - `assets/` - Files used in output (not loaded into context)
+
+7. **LICENSE is critical**: Even if `package.json` has `"license": "MIT"`, you must have an actual `LICENSE` file for proper open source distribution.
+
+8. **dist in .gitignore**: Always ignore build outputs. Only commit source code.
 
 ## License
 
