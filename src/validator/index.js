@@ -21,16 +21,29 @@ const SEVERITY = {
   SUCCESS: 'success'
 };
 
-// Required files for a valid skill
+// Required files for a valid skill (per PDF guide)
 const REQUIRED_FILES = [
-  'package.json'
+  'SKILL.md'  // Most important! Required by Claude Code
 ];
 
 // Recommended files for a well-structured skill
 const RECOMMENDED_FILES = [
+  'package.json',
   'README.md',
   'polyglot.json',
+  '.skill.yml'
+];
+
+// Optional but recommended for CLI skills
+const CLI_RECOMMENDED = [
   'dist/cli/index.js'
+];
+
+// Bundled resources (optional directories per PDF guide)
+const BUNDLED_RESOURCES = [
+  'scripts',     // Executable code
+  'references',   // Documentation for context
+  'assets'       // Files used in output
 ];
 
 // Best practice rules
@@ -54,6 +67,18 @@ const BEST_PRACTICES = {
   // Should use polyglot for internationalization
   usesPolyglot: true
 };
+
+/**
+ * Get description for a bundled resource directory
+ */
+function getResourceDescription(resourceDir) {
+  const descriptions = {
+    'scripts': 'executable code that is repeatedly rewritten or requires deterministic reliability',
+    'references': 'documentation and reference material to be loaded into context as needed',
+    'assets': 'files used in the output Claude produces (templates, images, fonts, etc.)'
+  };
+  return descriptions[resourceDir] || 'additional resources';
+}
 
 /**
  * Main validation function
@@ -106,6 +131,73 @@ export async function checkSkill(skillPath, options = {}) {
     addCheck('structure', `file_${file.replace(/\//g, '_')}`, exists,
       exists ? SEVERITY.SUCCESS : SEVERITY.ERROR,
       exists ? '' : t('error_missing_required').replace('{file}', file));
+  }
+
+  // 2.5. Validate SKILL.md (per PDF guide - most important!)
+  console.log(`${t('info_checking_skill_md')}`);
+  const skillMdPath = path.join(skillPath, 'SKILL.md');
+  if (fs.existsSync(skillMdPath)) {
+    try {
+      const skillMdContent = fs.readFileSync(skillMdPath, 'utf-8');
+
+      // Check for YAML frontmatter
+      const hasFrontmatter = skillMdContent.startsWith('---');
+      addCheck('SKILL.md', 'has_frontmatter', hasFrontmatter,
+        hasFrontmatter ? SEVERITY.SUCCESS : SEVERITY.ERROR,
+        hasFrontmatter ? '' : 'SKILL.md must start with YAML frontmatter (---)');
+
+      // Extract and parse frontmatter
+      if (hasFrontmatter) {
+        const frontmatterEnd = skillMdContent.indexOf('---', 4);
+        if (frontmatterEnd > 0) {
+          const frontmatterText = skillMdContent.substring(4, frontmatterEnd);
+
+          // Check for required field: name
+          const hasName = frontmatterText.includes('name:');
+          addCheck('SKILL.md', 'frontmatter_has_name', hasName,
+            hasName ? SEVERITY.SUCCESS : SEVERITY.ERROR,
+            hasName ? '' : 'Frontmatter must include "name:" field');
+
+          // Check for required field: description
+          const hasDescription = frontmatterText.includes('description:');
+          addCheck('SKILL.md', 'frontmatter_has_description', hasDescription,
+            hasDescription ? SEVERITY.SUCCESS : SEVERITY.ERROR,
+            hasDescription ? '' : 'Frontmatter must include "description:" field');
+
+          // Check for optional field: license
+          const hasLicense = frontmatterText.includes('license:');
+          addCheck('SKILL.md', 'frontmatter_has_license', hasLicense,
+            hasLicense ? SEVERITY.SUCCESS : SEVERITY.INFO,
+            hasLicense ? '' : 'Consider adding "license:" field to frontmatter');
+
+          // Best practice: description should explain when to use the skill
+          if (hasDescription) {
+            const descMatch = frontmatterText.match(/description:\s*(.+)/);
+            if (descMatch) {
+              const description = descMatch[1].toLowerCase();
+              const describesUsage = description.includes('use when') ||
+                                    description.includes('use this skill') ||
+                                    description.includes('should be used') ||
+                                    description.includes('when to');
+              addCheck('SKILL.md', 'describes_when_to_use', describesUsage,
+                describesUsage ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+                describesUsage ? '' : 'Description should explain when to use this skill (e.g., "Use this skill when...")');
+            }
+          }
+        }
+      }
+
+      // Check for markdown body content
+      const bodyStart = skillMdContent.indexOf('---', 4);
+      const hasBody = bodyStart > 0 && skillMdContent.substring(bodyStart + 3).trim().length > 0;
+      addCheck('SKILL.md', 'has_markdown_body', hasBody,
+        hasBody ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+        hasBody ? '' : 'SKILL.md should have markdown body content after frontmatter');
+
+    } catch (e) {
+      addCheck('SKILL.md', 'readable', false, SEVERITY.ERROR,
+        'Could not read SKILL.md');
+    }
   }
 
   // 3. Check recommended files
@@ -250,6 +342,56 @@ export async function checkSkill(skillPath, options = {}) {
     addCheck('best_practices', 'ignores_dist', ignoresDist,
       ignoresDist ? SEVERITY.SUCCESS : SEVERITY.WARNING,
       ignoresDist ? '' : 'Add /dist to .gitignore');
+  }
+
+  // Check for LICENSE file (open source best practice)
+  const licensePath = path.join(skillPath, 'LICENSE');
+  const hasLicense = fs.existsSync(licensePath);
+  addCheck('best_practices', 'has_license_file', hasLicense,
+    hasLicense ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+    hasLicense ? '' : 'Add LICENSE file for proper open source distribution');
+
+  // Check for CONTRIBUTING.md (open source best practice)
+  const contributingPath = path.join(skillPath, 'CONTRIBUTING.md');
+  const hasContributing = fs.existsSync(contributingPath);
+  addCheck('best_practices', 'has_contributing', hasContributing,
+    hasContributing ? SEVERITY.SUCCESS : SEVERITY.INFO,
+    hasContributing ? '' : 'Consider adding CONTRIBUTING.md for contributors');
+
+  // Check for CHANGELOG.md (open source best practice)
+  const changelogPath = path.join(skillPath, 'CHANGELOG.md');
+  const hasChangelog = fs.existsSync(changelogPath);
+  addCheck('best_practices', 'has_changelog', hasChangelog,
+    hasChangelog ? SEVERITY.SUCCESS : SEVERITY.INFO,
+    hasChangelog ? '' : 'Consider adding CHANGELOG.md for version tracking');
+
+  // 8. Check Bundled Resources (per PDF guide)
+  console.log(`${t('info_checking_resources')}`);
+
+  for (const resourceDir of BUNDLED_RESOURCES) {
+    const resourcePath = path.join(skillPath, resourceDir);
+    const exists = fs.existsSync(resourcePath) && fs.statSync(resourcePath).isDirectory();
+    if (exists) {
+      addCheck('bundled_resources', `has_${resourceDir}`, true, SEVERITY.SUCCESS,
+        `Found ${resourceDir}/ directory`);
+    } else {
+      addCheck('bundled_resources', `has_${resourceDir}`, true, SEVERITY.INFO,
+        `Consider adding ${resourceDir}/ for ${getResourceDescription(resourceDir)}`);
+    }
+  }
+
+  // Check for SKILL.md content bloat (per PDF: concise is key)
+  if (fs.existsSync(skillMdPath)) {
+    const skillMdContent = fs.readFileSync(skillMdPath, 'utf-8');
+    const wordCount = skillMdContent.split(/\s+/).length;
+
+    if (wordCount > 5000) {
+      addCheck('SKILL.md', 'concise_content', false, SEVERITY.WARNING,
+        `SKILL.md is quite long (${wordCount} words). Consider moving detailed reference material to references/ directory per PDF guide (Concise is Key principle)`);
+    } else {
+      addCheck('SKILL.md', 'concise_content', true, SEVERITY.SUCCESS,
+        `SKILL.md is concise (${wordCount} words)`);
+    }
   }
 
   // Generate recommendations
