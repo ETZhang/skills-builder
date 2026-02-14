@@ -1,0 +1,39 @@
+{
+  "name": "skill-builder",
+  "version": "1.0.0",
+  "description": "A Claude skill for checking, creating, and modifying other skills according to best practices",
+  "type": "module",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "skill-builder": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "bun build src/cli/index.js --outdir dist/cli --target node --platform neutral",
+    "build:analyzer": "bun build src/analyzer/index.js --outdir dist/analyzer --target node --platform neutral",
+    "build:validator": "bun build src/validator/index.js --outdir dist/validator --target node --platform neutral",
+    "build:generator": "bun build src/generator/index.js --outdir dist/generator --target node --platform neutral",
+    "build:all": "bun run build && bun run build:analyzer && bun run build:validator && bun run build:generator",
+    "dev": "bun run src/cli/index.js"
+  },
+  "keywords": [
+    "claude",
+    "skill",
+    "builder",
+    "validator",
+    "generator"
+  ],
+  "author": "Claude Code",
+  "license": "MIT",
+  "dependencies": {
+    "picocolors": "^1.1.1",
+    "prompts": "^2.4.2",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.11.0",
+    "@types/prompts": "^2.4.9",
+    "@types/yargs": "^17.0.32",
+    "bun-types": "latest"
+  }
+}
