@@ -365,6 +365,66 @@ export async function checkSkill(skillPath, options = {}) {
     hasChangelog ? SEVERITY.SUCCESS : SEVERITY.INFO,
     hasChangelog ? '' : 'Consider adding CHANGELOG.md for version tracking');
 
+  // 9. Check marketplace readiness (SkillsMP, DayMade, etc.)
+  console.log(`${t('info_checking_marketplace')}`);
+  const marketplacePath = path.join(skillPath, 'marketplace.json');
+  const hasMarketplaceJson = fs.existsSync(marketplacePath);
+  addCheck('marketplace', 'has_marketplace_json', hasMarketplaceJson,
+    hasMarketplaceJson ? SEVERITY.SUCCESS : SEVERITY.INFO,
+    hasMarketplaceJson ? '' : 'Consider adding marketplace.json for market distribution');
+
+  if (hasMarketplaceJson) {
+    try {
+      const marketplace = JSON.parse(fs.readFileSync(marketplacePath, 'utf-8'));
+
+      // Check required marketplace fields
+      const requiredMarketplaceFields = ['name', 'version', 'description', 'categories', 'keywords', 'author', 'license', 'repository', 'homepage', 'bugs', 'marketplace'];
+      for (const field of requiredMarketplaceFields) {
+        const hasField = marketplace[field] !== undefined;
+        addCheck('marketplace', `field_${field}`, hasField,
+          hasField ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+          hasField ? '' : `Missing marketplace field: ${field}`);
+      }
+
+      // Check if categories is an array
+      if (marketplace.categories) {
+        const hasCategories = Array.isArray(marketplace.categories) && marketplace.categories.length > 0;
+        addCheck('marketplace', 'has_valid_categories', hasCategories,
+          hasCategories ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+          hasCategories ? '' : 'categories should be a non-empty array');
+      }
+
+      // Check if keywords is an array
+      if (marketplace.keywords) {
+        const hasKeywords = Array.isArray(marketplace.keywords) && marketplace.keywords.length > 0;
+        addCheck('marketplace', 'has_valid_keywords', hasKeywords,
+          hasKeywords ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+          hasKeywords ? '' : 'keywords should be a non-empty array');
+      }
+
+      // Check if marketplace field is valid
+      if (marketplace.marketplace) {
+        const validMarketplaces = ['skillsmp', 'daymade', 'hexrays', 'smartscope'];
+        const isValidMarketplace = validMarketplaces.includes(marketplace.marketplace);
+        addCheck('marketplace', 'valid_marketplace', isValidMarketplace,
+          isValidMarketplace ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+          isValidMarketplace ? '' : `marketplace should be one of: ${validMarketplaces.join(', ')}`);
+      }
+
+      // Check if repository URL is valid
+      if (marketplace.repository) {
+        const isValidUrl = marketplace.repository.startsWith('https://');
+        addCheck('marketplace', 'valid_repository_url', isValidUrl,
+          isValidUrl ? SEVERITY.SUCCESS : SEVERITY.WARNING,
+          isValidUrl ? '' : 'repository should be a valid HTTPS URL');
+      }
+
+    } catch (e) {
+      addCheck('marketplace', 'valid_json', false, SEVERITY.ERROR,
+        'marketplace.json contains invalid JSON');
+    }
+  }
+
   // 8. Check Bundled Resources (per PDF guide)
   console.log(`${t('info_checking_resources')}`);
 

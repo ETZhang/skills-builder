@@ -1,0 +1,25 @@
+{
+  "name": "skills-builder",
+  "version": "1.0.0",
+  "description": "A comprehensive CLI tool and master guide for checking, creating, and managing Claude Code skills according to open-source best practices",
+  "categories": [
+    "Workflow automation",
+    "CLI tool",
+    "Developer tool"
+  ],
+  "keywords": [
+    "claude",
+    "skill",
+    "builder",
+    "validator",
+    "generator",
+    "cli",
+    "automation"
+  ],
+  "author": "Claude Code",
+  "license": "MIT",
+  "repository": "https://github.com/ETZhang/skills-builder",
+  "homepage": "https://github.com/ETZhang/skills-builder#readme",
+  "bugs": "https://github.com/ETZhang/skills-builder/issues",
+  "marketplace": "skillsmp"
+}

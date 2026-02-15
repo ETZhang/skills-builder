@@ -20,6 +20,7 @@ export async function createSkill(name, options = {}) {
     path: basePath = '.',
     interactive = true,
     template = 'basic',
+    marketplace = options.marketplace || false,  // New option for market-ready skills
     translations = {}
   } = options;
 
@@ -57,7 +58,16 @@ export async function createSkill(name, options = {}) {
   fs.writeFileSync(
     join(skillPath, 'package.json'),
     JSON.stringify(packageJson, null, 2)
-  );
+    );
+
+  // Create marketplace.json if market-ready skill
+  if (options.marketplace) {
+      const marketplaceJson = generateMarketplaceJson(name, skillClassName);
+      fs.writeFileSync(
+        join(skillPath, 'marketplace.json'),
+        JSON.stringify(marketplaceJson, null, 2)
+      );
+    }
 
   // Create polyglot.json
   const polyglotJson = generatePolyglotJson(name, skillClassName);
@@ -111,6 +121,15 @@ export async function createSkill(name, options = {}) {
     bunfigContent
   );
 
+  // Create marketplace.json if market-ready skill
+  if (options.marketplace) {
+    const marketplaceJson = generateMarketplaceJson(name, skillClassName);
+    fs.writeFileSync(
+      join(skillPath, 'marketplace.json'),
+      JSON.stringify(marketplaceJson, null, 2)
+      );
+  }
+
   return {
     success: true,
     skillPath,
@@ -134,7 +153,7 @@ function generatePackageJson(name, className) {
   return {
     name,
     version: '1.0.0',
-    description: `A Claude skill for ${name.replace(/-/g, ' ')}`,
+    description: `A Claude skill for ${name} that follows SkillsMP/DayMade best practices`,
     type: 'module',
     main: 'dist/cli/index.js',
     bin: {
@@ -503,4 +522,30 @@ dev = true
 # Enable install cache
 enable = true
 `;
+}
+
+/**
+ * Generate marketplace.json content for market-ready skills
+ */
+function generateMarketplaceJson(name, className) {
+  const categories = {
+    'productivity': 'Workflow automation',
+    'development': 'CLI tool',
+    'documentation': 'Developer tool',
+    'utilities': 'System administration'
+  };
+
+  return {
+    name,
+    version: '1.0.0',
+    description: `A Claude skill for ${name} that follows SkillsMP/DayMade best practices`,
+    categories: Object.values(categories),
+    keywords: ['claude', 'skill', 'ai', 'automation'],
+    author: 'Claude Code',
+    license: 'MIT',
+    repository: `https://github.com/ETZhang/skills-builder`,
+    homepage: `https://github.com/ETZhang/skills-builder#readme`,
+    bugs: `https://github.com/ETZhang/skills-builder/issues`,
+    marketplace: 'skillsmp'
+  };
 }
